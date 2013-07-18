@@ -64,7 +64,7 @@ class Api_newsplus extends Plugin {
 	function buildHeadlinesArray($feed_id, $limit = 20, $offset = 0, $view_mode = "all_articles", $since_id) {
 
 			$qfh_ret = $this->queryFeedHeadlines($feed_id, $limit,
-				$view_mode, false, "", "",
+				$view_mode, "", "",
 				"", $offset, 0, false, $since_id, false);
 
 			$result = $qfh_ret[0];
@@ -106,7 +106,7 @@ class Api_newsplus extends Plugin {
 
 
 
-	function queryFeedHeadlines($feed, $limit, $view_mode, $cat_view, $search, $search_mode, $override_order = false, $offset = 0, $owner_uid = 0, $filter = false, $since_id = 0, $include_children = false, $ignore_vfeed_group = false, $override_strategy = false, $override_vfeed = false) {
+	function queryFeedHeadlines($feed, $limit, $view_mode, $search, $search_mode, $override_order = false, $offset = 0, $owner_uid = 0, $filter = false, $since_id = 0, $include_children = false, $ignore_vfeed_group = false, $override_strategy = false, $override_vfeed = false) {
 
 		if (!$owner_uid) $owner_uid = $_SESSION["uid"];
 
@@ -126,7 +126,7 @@ class Api_newsplus extends Plugin {
 
 			if ($view_mode == "adaptive") {
 				if ($feed != -1) {
-					$unread = getFeedUnread($feed, $cat_view);
+					$unread = getFeedUnread($feed, false);
 
 					if ($unread > 0)
 						$view_query_part = " unread = true AND ";
