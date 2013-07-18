@@ -65,7 +65,7 @@ class Api_newsplus extends Plugin {
 
 			$qfh_ret = $this->queryFeedHeadlines($feed_id, $limit,
 				$view_mode, "", "",
-				"", $offset, 0, false, $since_id, false);
+				"", $offset, 0, false, $since_id);
 
 			$result = $qfh_ret[0];
 
@@ -106,7 +106,7 @@ class Api_newsplus extends Plugin {
 
 
 
-	function queryFeedHeadlines($feed, $limit, $view_mode, $search, $search_mode, $override_order = false, $offset = 0, $owner_uid = 0, $filter = false, $since_id = 0, $include_children = false, $ignore_vfeed_group = false, $override_strategy = false, $override_vfeed = false) {
+	function queryFeedHeadlines($feed, $limit, $view_mode, $search, $search_mode, $override_order = false, $offset = 0, $owner_uid = 0, $filter = false, $since_id = 0) {
 
 		if (!$owner_uid) $owner_uid = $_SESSION["uid"];
 
@@ -234,14 +234,6 @@ class Api_newsplus extends Plugin {
 				$order_by = $override_order;
 			}
 
-			if ($override_strategy) {
-				$query_strategy_part = $override_strategy;
-			}
-
-			if ($override_vfeed) {
-				$vfeed_query_part = $override_vfeed;
-			}
-
 
 					if (is_numeric($feed) && $feed > 0) {
 						$result = db_query("SELECT title,site_url,last_error,last_updated
@@ -266,15 +258,6 @@ class Api_newsplus extends Plugin {
 
 				if ($limit_query_part) {
 					$offset_query_part = "OFFSET $offset";
-				}
-
-				// proper override_order applied above
-				if ($vfeed_query_part && !$ignore_vfeed_group && get_pref('VFEED_GROUP_BY_FEED', $owner_uid)) {
-					if (!$override_order) {
-						$order_by = "ttrss_feeds.title, $order_by";
-					} else {
-						$order_by = "ttrss_feeds.title, $override_order";
-					}
 				}
 
 				if (!$allow_archived) {
