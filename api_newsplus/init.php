@@ -102,7 +102,7 @@ class Api_newsplus extends Plugin {
 		}
 
 		$view_query_part = "";
-
+		
 		if ($view_mode == "adaptive") {
 			if ($feed != -1) {
 				$unread = getFeedUnread($feed, false);
@@ -196,25 +196,9 @@ class Api_newsplus extends Plugin {
 			$order_by = $override_order;
 		}
 
-		if (is_numeric($feed) && $feed > 0) {
-			$result = db_query("SELECT title,site_url,last_error,last_updated
-				FROM ttrss_feeds WHERE id = '$feed' AND owner_uid = $owner_uid");
-
-			$feed_site_url = db_fetch_result($result, 0, "site_url");
-			$last_error = db_fetch_result($result, 0, "last_error");
-			$last_updated = db_fetch_result($result, 0, "last_updated");
-		}
-
 		$content_query_part = "content, content AS content_preview, ";
 
 		if (is_numeric($feed)) {
-
-			if ($feed >= 0) {
-				$feed_kind = "Feeds";
-			} else {
-				$feed_kind = "Labels";
-			}
-
 			if ($limit_query_part) {
 				$offset_query_part = "OFFSET $offset";
 			}
@@ -284,7 +268,6 @@ class Api_newsplus extends Plugin {
 							$content_query_part .
 							"score ";
 
-			$feed_kind = "Tags";
 			$all_tags = explode(",", $feed);
 			$i = 1;
 			$sub_selects = array();
