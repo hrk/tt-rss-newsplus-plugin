@@ -127,12 +127,10 @@ class Api_newsplus extends Plugin {
 
 		$allow_archived = false;
 
-		$vfeed_query_part = "";
 
 		// override query strategy and enable feed display when searching globally
 		if (!is_numeric($feed)) {
 			$query_strategy_part = "true";
-			$vfeed_query_part = "(SELECT title FROM ttrss_feeds WHERE id = feed_id) as feed_title,";
 		} else if ($feed > 0) {
 			$query_strategy_part = "feed_id = '$feed'";
 		} else if ($feed == 0) { // archive virtual feed
@@ -140,19 +138,16 @@ class Api_newsplus extends Plugin {
 			$allow_archived = true;
 		} else if ($feed == -1) { // starred virtual feed
 			$query_strategy_part = "marked = true";
-			$vfeed_query_part = "ttrss_feeds.title AS feed_title,";
 			$allow_archived = true;
 
 			$override_order = "last_marked DESC, date_entered DESC, updated DESC";
 		} else if ($feed == -2) { // published virtual feed OR labels category
 			$query_strategy_part = "published = true";
-			$vfeed_query_part = "ttrss_feeds.title AS feed_title,";
 			$allow_archived = true;
 
 			$override_order = "last_published DESC, date_entered DESC, updated DESC";
 		} else if ($feed == -6) { // recently read
 			$query_strategy_part = "unread = false AND last_read IS NOT NULL";
-			$vfeed_query_part = "ttrss_feeds.title AS feed_title,";
 			$allow_archived = true;
 
 			$override_order = "last_read DESC";
@@ -167,11 +162,9 @@ class Api_newsplus extends Plugin {
 				$query_strategy_part .= " AND date_entered > DATE_SUB(NOW(), INTERVAL $intl HOUR) ";
 			}
 
-			$vfeed_query_part = "ttrss_feeds.title AS feed_title,";
 		} else if ($feed == -4) { // all articles virtual feed
 			$allow_archived = true;
 			$query_strategy_part = "true";
-			$vfeed_query_part = "ttrss_feeds.title AS feed_title,";
 		} else if ($feed <= LABEL_BASE_INDEX) { // labels
 			$label_id = feed_to_label_id($feed);
 
@@ -179,7 +172,6 @@ class Api_newsplus extends Plugin {
 				ttrss_labels2.id = ttrss_user_labels2.label_id AND
 				ttrss_user_labels2.article_id = ref_id";
 
-			$vfeed_query_part = "ttrss_feeds.title AS feed_title,";
 			$ext_tables_part = ",ttrss_labels2,ttrss_user_labels2";
 			$allow_archived = true;
 		} else {
@@ -212,22 +204,15 @@ class Api_newsplus extends Plugin {
 					LEFT JOIN ttrss_feeds ON (feed_id = ttrss_feeds.id)";
 			}
 
-			if ($vfeed_query_part) {
-				$vfeed_query_part .= "favicon_avg_color,";
-			}
 			$query = "SELECT DISTINCT
 					date_entered,
 					guid,
 					ttrss_entries.id,
 					updated,
-					always_display_enclosures,
-					site_url,
-					note,
 					int_id,
 					uuid,
 					unread,feed_id,marked,published,link,last_read,orig_feed_id,
 					last_marked, last_published,
-					$vfeed_query_part
 					author,score
 				FROM
 					$from_qpart
@@ -264,7 +249,6 @@ class Api_newsplus extends Plugin {
 							"(SELECT hide_images FROM ttrss_feeds WHERE id = feed_id) AS hide_images," .
 							"last_marked, last_published, " .
 							$since_id_part .
-							$vfeed_query_part .
 							$content_query_part .
 							"score ";
 
