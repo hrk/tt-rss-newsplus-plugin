@@ -8,15 +8,14 @@ class Api_newsplus extends Plugin {
 
 	private $host;
 	private $dbh;
-	
+
 	function about() {
 		return array(1.0
 			, "News+ plugin"
 			, "hrk"
-			, true // Not a system plugin.
+			, true // Must be a system plugin to add an API.
 			, "http://github.com/hrk/tt-rss-news+-plugin/"
 			);
-
 	}
 	
 	function api_version() {
@@ -26,21 +25,21 @@ class Api_newsplus extends Plugin {
 	function init($host) {
 		$this->host = $host;
 		$this->dbh = $host->get_dbh();
-		
+
 		$this->host->add_api_method("getCompactHeadlines", $this);
 	}
 
-    /*
-     *
-     */
+	/*
+	 * 
+	 */
 	function getCompactHeadlines() {
 		$feed_id = db_escape_string($_REQUEST["feed_id"]);
 		if ($feed_id != "") {
-			$limit = (int)db_escape_string($_REQUEST["limit"]);
-			$offset = (int)db_escape_string($_REQUEST["skip"]);
+			$limit = (int) db_escape_string($_REQUEST["limit"]);
+			$offset = (int) db_escape_string($_REQUEST["skip"]);
 			/* all_articles, unread, adaptive, marked, updated */
 			$view_mode = db_escape_string($_REQUEST["view_mode"]);
-			$since_id = (int)db_escape_string($_REQUEST["since_id"]);
+			$since_id = (int) db_escape_string($_REQUEST["since_id"]);
 
 			/* */
 			$headlines = $this->buildHeadlinesArray($feed_id, $limit, $offset, $view_mode, $since_id);
@@ -63,9 +62,7 @@ class Api_newsplus extends Plugin {
 
 	function buildHeadlinesArray($feed_id, $limit = 20, $offset = 0, $view_mode = "all_articles", $since_id) {
 
-			$qfh_ret = $this->queryFeedHeadlines($feed_id, $limit,
-				$view_mode, "", "",
-				"", $offset, 0, false, $since_id);
+			$qfh_ret = $this->queryFeedHeadlines($feed_id, $limit, $view_mode, $offset, $since_id);
 
 			$result = $qfh_ret[0];
 
@@ -78,27 +75,10 @@ class Api_newsplus extends Plugin {
 				}
 				*/
 
-				$is_updated = ($line["last_read"] == "" &&
-					($line["unread"] != "t" && $line["unread"] != "1"));
-
-				$headline_row = array(
-						"id" => (int)$line["id"],
-/*						"unread" => sql_bool_to_bool($line["unread"]),
-						"marked" => sql_bool_to_bool($line["marked"]),
-						"published" => sql_bool_to_bool($line["published"]),
-						"updated" => (int) strtotime($line["updated"]),
-						"is_updated" => $is_updated,
-						"feed_id" => $line["feed_id"],*/
-					);
-
-/*
-				foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_RENDER_ARTICLE_API) as $p) {
-					$headline_row = $p->hook_render_article_api(array("headline" => $headline_row));
-				}*/
+				$headline_row = array("id" => (int)$line["id"]);
 
 				array_push($headlines, $headline_row);
 			}
-
 			return $headlines;
 	}
 
@@ -106,9 +86,11 @@ class Api_newsplus extends Plugin {
 
 
 
-	function queryFeedHeadlines($feed, $limit, $view_mode, $search, $search_mode, $override_order = false, $offset = 0, $owner_uid = 0, $filter = false, $since_id = 0) {
+	function queryFeedHeadlines($feed, $limit, $view_mode, $offset = 0, $since_id = 0) {
 
-		if (!$owner_uid) $owner_uid = $_SESSION["uid"];
+		$override_order = false;
+
+		$owner_uid = $_SESSION["uid"];
 
 		$ext_tables_part = "";
 
@@ -124,38 +106,30 @@ class Api_newsplus extends Plugin {
 
 		$view_query_part = "";
 
-			if ($view_mode == "adaptive") {
-				if ($feed != -1) {
-					$unread = getFeedUnread($feed, false);
+		if ($view_mode == "adaptive") {
+			if ($feed != -1) {
+				$unread = getFeedUnread($feed, false);
 
-					if ($unread > 0)
-						$view_query_part = " unread = true AND ";
-				}
+				if ($unread > 0)
+					$view_query_part = " unread = true AND ";
 			}
-
-			if ($view_mode == "marked") {
-				$view_query_part = " marked = true AND ";
-			}
-
-			if ($view_mode == "has_note") {
-				$view_query_part = " (note IS NOT NULL AND note != '') AND ";
-			}
-
-			if ($view_mode == "published") {
-				$view_query_part = " published = true AND ";
-			}
-
-			if ($view_mode == "unread" && $feed != -6) {
+		} elseif ($view_mode == "marked") {
+			$view_query_part = " marked = true AND ";
+		} elseif ($view_mode == "has_note") {
+			$view_query_part = " (note IS NOT NULL AND note != '') AND ";
+		} elseif ($view_mode == "published") {
+			$view_query_part = " published = true AND ";
+		} elseif ($view_mode == "unread" && $feed != -6) {
 				$view_query_part = " unread = true AND ";
-			}
+		}
 
-			if ($limit > 0) {
-				$limit_query_part = "LIMIT " . $limit;
-			}
+		if ($limit > 0) {
+			$limit_query_part = "LIMIT " . $limit;
+		}
 
-			$allow_archived = false;
+		$allow_archived = false;
 
-			$vfeed_query_part = "";
+		$vfeed_query_part = "";
 
 			// override query strategy and enable feed display when searching globally
 			if (!is_numeric($feed)) {
@@ -358,19 +332,6 @@ class Api_newsplus extends Plugin {
 			return array($result);
 
 	}
-
-
-
-
-
-
-
-
-	function wrap($status, $reply) {
-		print json_encode(array("seq" => $this->seq,
-			"status" => $status,
-			"content" => $reply));
-	} // end-function: wrap
 
 } // end-class
 ?>
