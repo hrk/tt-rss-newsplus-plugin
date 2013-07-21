@@ -9,19 +9,28 @@ class Api_newsplus extends Plugin {
 	private $host;
 	private $dbh;
 
+	/**
+	 * Plugin interface: about.
+	 */
 	function about() {
 		return array(1.0
-			, "News+ plugin"
+			, "API plugin for News+"
 			, "hrk"
 			, true // Must be a system plugin to add an API.
-			, "http://github.com/hrk/tt-rss-news+-plugin/"
+			, "http://github.com/hrk/tt-rss-newsplus-plugin/"
 			);
 	}
 	
+	/**
+	 * Plugin interface.
+	 */
 	function api_version() {
 		return 2;
 	}
 
+	/**
+	 * Plugin interface.
+	 */
 	function init($host) {
 		$this->host = $host;
 		$this->dbh = $host->get_dbh();
@@ -29,8 +38,8 @@ class Api_newsplus extends Plugin {
 		$this->host->add_api_method("getCompactHeadlines", $this);
 	}
 
-	/*
-	 * 
+	/**
+	 * Our own API.
 	 */
 	function getCompactHeadlines() {
 		$feed_id = db_escape_string($_REQUEST["feed_id"]);
@@ -49,23 +58,13 @@ class Api_newsplus extends Plugin {
 		} // end-if: $feed_if != ""
 	} // end-function
 
-
-
-
-
-
-
-
-
-
-
-
-	function buildHeadlinesArray($feed_id, $limit = 20, $offset = 0, $view_mode = "all_articles", $since_id) {
+	/**
+	 * Private function which builds the result. It is mapped on api_get_headlines in the official API.
+	 */
+	function buildHeadlinesArray($feed_id, $limit = 20, $offset = 0, $view_mode = "all_articles", $since_id = 0) {
 
 			$qfh_ret = $this->queryFeedHeadlines($feed_id, $limit, $view_mode, $offset, $since_id);
-
 			$result = $qfh_ret[0];
-
 			$headlines = array();
 
 			while ($line = db_fetch_assoc($result)) {
@@ -74,18 +73,17 @@ class Api_newsplus extends Plugin {
 					$line = $p->hook_query_headlines($line, 100, true);
 				}
 				*/
-
 				$headline_row = array("id" => (int)$line["id"]);
 
 				array_push($headlines, $headline_row);
 			}
 			return $headlines;
-	}
+	} // end-function buildHeadlinesArray
 
-
-
-
-
+	/**
+	 * Private function which executes the SQL query. Mapped on the same-named function in
+	 * the official TT-RSS API, removing un-needed parts.
+	 */
 	function queryFeedHeadlines($feed, $limit, $view_mode, $offset = 0, $since_id = 0) {
 		$owner_uid = $_SESSION["uid"];
 
@@ -126,7 +124,6 @@ class Api_newsplus extends Plugin {
 		}
 
 		$allow_archived = false;
-
 
 		// override query strategy and enable feed display when searching globally
 		if (!is_numeric($feed)) {
@@ -211,9 +208,9 @@ class Api_newsplus extends Plugin {
 					updated,
 					int_id,
 					uuid,
-					unread,feed_id,marked,published,link,last_read,orig_feed_id,
+					unread,marked,published,link,last_read,
 					last_marked, last_published,
-					author,score
+					score
 				FROM
 					$from_qpart
 				WHERE
@@ -236,20 +233,15 @@ class Api_newsplus extends Plugin {
 			$select_qpart = "SELECT DISTINCT " .
 							"date_entered," .
 							"guid," .
-							"note," .
 							"ttrss_entries.id as id," .
 							"updated," .
 							"unread," .
-							"feed_id," .
-							"orig_feed_id," .
 							"marked," .
-							"link," .
 							"uuid," .
 							"last_read," .
 							"(SELECT hide_images FROM ttrss_feeds WHERE id = feed_id) AS hide_images," .
 							"last_marked, last_published, " .
 							$since_id_part .
-							$content_query_part .
 							"score ";
 
 			$all_tags = explode(",", $feed);
@@ -277,7 +269,7 @@ class Api_newsplus extends Plugin {
 		}
 
 		return array($result);
-	}
+	} // end-function queryFeedHeadlines
 
 } // end-class
 ?>
