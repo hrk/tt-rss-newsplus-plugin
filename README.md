@@ -40,3 +40,6 @@ Log-in to your TT-RSS instance and go into the preferences. Scroll to plugins an
 
 #### Automatic configuration for every user
 Edit your config.php and add "api_newsplus" to the list of system plugins. It will be automatically enabled for every user.
+
+## License
+This code is licensed under GPLv3. Although I am not a personal fan of the v3, since this code was built upon the existing source of TT-RSS, it inherits the same license.
