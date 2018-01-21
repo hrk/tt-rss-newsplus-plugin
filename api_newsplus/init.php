@@ -7,20 +7,19 @@
 class Api_newsplus extends Plugin {
 
 	private $host;
-	private $dbh;
 
 	/**
 	 * Plugin interface: about.
 	 */
 	function about() {
-		return array(1.0
+		return array(1.1
 			, "API plugin for News+"
 			, "hrk"
 			, true // Must be a system plugin to add an API.
 			, "http://github.com/hrk/tt-rss-newsplus-plugin/"
 			);
 	}
-	
+
 	/**
 	 * Plugin interface.
 	 */
@@ -33,7 +32,6 @@ class Api_newsplus extends Plugin {
 	 */
 	function init($host) {
 		$this->host = $host;
-		$this->dbh = $host->get_dbh();
 
 		$this->host->add_api_method("getCompactHeadlines", $this);
 	}
@@ -42,13 +40,13 @@ class Api_newsplus extends Plugin {
 	 * Our own API.
 	 */
 	function getCompactHeadlines() {
-		$feed_id = db_escape_string($_REQUEST["feed_id"]);
+		$feed_id = clean($_REQUEST["feed_id"]);
 		if ($feed_id != "") {
-			$limit = (int) db_escape_string($_REQUEST["limit"]);
-			$offset = (int) db_escape_string($_REQUEST["skip"]);
+			$limit = (int) clean($_REQUEST["limit"]);
+			$offset = (int) clean($_REQUEST["skip"]);
 			/* all_articles, unread, adaptive, marked, updated */
-			$view_mode = db_escape_string($_REQUEST["view_mode"]);
-			$since_id = (int) db_escape_string($_REQUEST["since_id"]);
+			$view_mode = clean($_REQUEST["view_mode"]);
+			$since_id = (int) clean($_REQUEST["since_id"]);
 
 			/* */
 			$headlines = $this->buildHeadlinesArray($feed_id, $limit, $offset, $view_mode, $since_id);
@@ -67,7 +65,7 @@ class Api_newsplus extends Plugin {
 			$result = $qfh_ret[0];
 			$headlines = array();
 
-			while ($line = db_fetch_assoc($result)) {
+			while ($line = $result->fetch()) {
 				/*
 				foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_QUERY_HEADLINES) as $p) {
 					$line = $p->hook_query_headlines($line, 100, true);
@@ -226,7 +224,7 @@ class Api_newsplus extends Plugin {
 
 			if ($_REQUEST["debug"]) print $query;
 
-			$result = db_query($query);
+			$result = $this->pdo->query($query);
 
 		} else {
 			// browsing by tag
@@ -249,7 +247,7 @@ class Api_newsplus extends Plugin {
 			$sub_selects = array();
 			$sub_ands = array();
 			foreach ($all_tags as $term) {
-				array_push($sub_selects, "(SELECT post_int_id from ttrss_tags WHERE tag_name = " . db_quote($term) . " AND owner_uid = $owner_uid) as A$i");
+				array_push($sub_selects, "(SELECT post_int_id from ttrss_tags WHERE tag_name = " . $this->pdo->quote($term) . " AND owner_uid = $owner_uid) as A$i");
 				$i++;
 			}
 			if ($i > 2) {
@@ -265,7 +263,7 @@ class Api_newsplus extends Plugin {
 			array_push($sub_ands, "ttrss_user_entries.ref_id = ttrss_entries.id");
 			$from_qpart = " FROM " . implode(", ", $sub_selects) . ", ttrss_user_entries, ttrss_entries";
 			$where_qpart = " WHERE " . implode(" AND ", $sub_ands);
-			$result = db_query($select_qpart . $from_qpart . $where_qpart);
+			$result = $this->pdo->query($select_qpart . $from_qpart . $where_qpart);
 		}
 
 		return array($result);
