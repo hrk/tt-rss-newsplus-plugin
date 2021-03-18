@@ -42,10 +42,10 @@ class Api_newsplus extends Plugin {
 	function getCompactHeadlines() {
 		$feed_id = clean($_REQUEST["feed_id"]);
 		if ($feed_id != "") {
-			$limit = (int) clean($_REQUEST["limit"] ?? 20);
+			$limit = (int) clean($_REQUEST["limit"] ?? 0);
 			$offset = (int) clean($_REQUEST["skip"] ?? 0);
 			/* all_articles, unread, adaptive, marked, updated */
-			$view_mode = clean($_REQUEST["view_mode"] ?? "all_articles");
+			$view_mode = clean($_REQUEST["view_mode"] ?? '');
 			$since_id = (int) clean($_REQUEST["since_id"] ?? 0);
 
 			/* */
