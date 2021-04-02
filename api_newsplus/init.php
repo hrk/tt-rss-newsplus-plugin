@@ -42,11 +42,11 @@ class Api_newsplus extends Plugin {
 	function getCompactHeadlines() {
 		$feed_id = clean($_REQUEST["feed_id"]);
 		if ($feed_id != "") {
-			$limit = (int) clean($_REQUEST["limit"]);
-			$offset = (int) clean($_REQUEST["skip"]);
+			$limit = (int) clean($_REQUEST["limit"] ?? 0);
+			$offset = (int) clean($_REQUEST["skip"] ?? 0);
 			/* all_articles, unread, adaptive, marked, updated */
-			$view_mode = clean($_REQUEST["view_mode"]);
-			$since_id = (int) clean($_REQUEST["since_id"]);
+			$view_mode = clean($_REQUEST["view_mode"] ?? '');
+			$since_id = (int) clean($_REQUEST["since_id"] ?? 0);
 
 			/* */
 			$headlines = $this->buildHeadlinesArray($feed_id, $limit, $offset, $view_mode, $since_id);
@@ -179,7 +179,7 @@ class Api_newsplus extends Plugin {
 			$order_by = "unread DESC, $order_by";
 		}
 
-		if ($override_order) {
+		if (isset($override_order)) {
 			$order_by = $override_order;
 		}
 
@@ -190,6 +190,7 @@ class Api_newsplus extends Plugin {
 				$offset_query_part = "OFFSET $offset";
 			}
 
+			$feed_check_qpart = '';
 			if (!$allow_archived) {
 				$from_qpart = "ttrss_entries,ttrss_user_entries,ttrss_feeds$ext_tables_part";
 				$feed_check_qpart = "ttrss_user_entries.feed_id = ttrss_feeds.id AND";
