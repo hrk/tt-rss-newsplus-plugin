@@ -223,7 +223,7 @@ class Api_newsplus extends Plugin {
 				$query_strategy_part ORDER BY $order_by
 				$limit_query_part $offset_query_part";
 
-			if ($_REQUEST["debug"]) print $query;
+			if (isset($_REQUEST["debug"]) && $_REQUEST["debug"]) print $query;
 
 			$result = $this->pdo->query($query);
 
