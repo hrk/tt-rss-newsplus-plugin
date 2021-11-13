@@ -186,7 +186,7 @@ class Api_newsplus extends Plugin {
 		$content_query_part = "content, content AS content_preview, ";
 
 		if (is_numeric($feed)) {
-			if ($limit_query_part) {
+			if (isset($limit_query_part)) {
 				$offset_query_part = "OFFSET $offset";
 			}
 
@@ -220,8 +220,10 @@ class Api_newsplus extends Plugin {
 				$filter_query_part
 				$view_query_part
 				$since_id_part
-				$query_strategy_part ORDER BY $order_by
-				$limit_query_part $offset_query_part";
+				$query_strategy_part ORDER BY $order_by";
+			if (isset($limit_query_part)) {
+				$query .= " $limit_query_part $offset_query_part";
+			}
 
 			if (isset($_REQUEST["debug"]) && $_REQUEST["debug"]) print $query;
 
